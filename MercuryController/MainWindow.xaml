@@ -11,6 +11,8 @@
         <Label x:Name="yAxis" Content="Label" HorizontalAlignment="Left" Margin="26,91,0,0" VerticalAlignment="Top" Width="460"/>
         <Label x:Name="buttonsLabel" Content="Label" HorizontalAlignment="Left" Margin="26,148,0,0" VerticalAlignment="Top" Width="460"/>
         <Label x:Name="triggers" Content="Label" HorizontalAlignment="Left" Margin="26,117,0,0" VerticalAlignment="Top" Width="460"/>
+        <Label x:Name="packetLabel" Content="Label" HorizontalAlignment="Left" Margin="26,224,0,0" VerticalAlignment="Top" Width="460"/>
+        <Label x:Name="packetLabelCOBS" Content="Label" HorizontalAlignment="Left" Margin="26,255,0,0" VerticalAlignment="Top" Width="460"/>
 
     </Grid>
 </Window>
