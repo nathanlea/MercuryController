@@ -7,12 +7,19 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="350" Width="525">
     <Grid>
-        <Label x:Name="xAxis" Content="Label" HorizontalAlignment="Left" Margin="26,60,0,0" VerticalAlignment="Top" Width="460"/>
-        <Label x:Name="yAxis" Content="Label" HorizontalAlignment="Left" Margin="26,91,0,0" VerticalAlignment="Top" Width="460"/>
-        <Label x:Name="buttonsLabel" Content="Label" HorizontalAlignment="Left" Margin="26,148,0,0" VerticalAlignment="Top" Width="460"/>
-        <Label x:Name="triggers" Content="Label" HorizontalAlignment="Left" Margin="26,117,0,0" VerticalAlignment="Top" Width="460"/>
-        <Label x:Name="packetLabel" Content="Label" HorizontalAlignment="Left" Margin="26,224,0,0" VerticalAlignment="Top" Width="460"/>
-        <Label x:Name="packetLabelCOBS" Content="Label" HorizontalAlignment="Left" Margin="26,255,0,0" VerticalAlignment="Top" Width="460"/>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="17*"/>
+            <ColumnDefinition Width="373*"/>
+            <ColumnDefinition Width="127*"/>
+        </Grid.ColumnDefinitions>
+        <Label x:Name="xAxis" Content="Label" HorizontalAlignment="Left" Margin="1,60,0,0" VerticalAlignment="Top" Width="372" Grid.Column="1" Height="26"/>
+        <Label x:Name="yAxis" Content="Label" HorizontalAlignment="Left" Margin="1,91,0,0" VerticalAlignment="Top" Width="460" Grid.Column="1" Height="26" Grid.ColumnSpan="2"/>
+        <Label x:Name="buttonsLabel" Content="Label" HorizontalAlignment="Left" Margin="1,148,0,0" VerticalAlignment="Top" Width="460" Grid.Column="1" Height="26" Grid.ColumnSpan="2"/>
+        <Label x:Name="triggers" Content="Label" HorizontalAlignment="Left" Margin="1,117,0,0" VerticalAlignment="Top" Width="460" Grid.Column="1" Height="26" Grid.ColumnSpan="2"/>
+        <Label x:Name="packetLabel" Content="Label" HorizontalAlignment="Left" Margin="1,224,0,0" VerticalAlignment="Top" Width="460" Grid.Column="1" Height="26" Grid.ColumnSpan="2"/>
+        <Label x:Name="packetLabelCOBS" Content="Label" HorizontalAlignment="Left" Margin="1,255,0,0" VerticalAlignment="Top" Width="460" Grid.Column="1" Height="26" Grid.ColumnSpan="2"/>
+        <Label x:Name="label" Content="Ping Time:" Grid.Column="2" HorizontalAlignment="Left" Margin="10,32,0,0" VerticalAlignment="Top" Height="26" Width="78"/>
+        <Label x:Name="pingTimeLabel" Content="42" Grid.Column="2" HorizontalAlignment="Left" Margin="79,32,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.748,0.37" Width="38"/>
 
     </Grid>
 </Window>
