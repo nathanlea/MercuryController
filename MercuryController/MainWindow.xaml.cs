@@ -43,7 +43,7 @@ namespace MercuryController
             _timer.Tick += _timer_Tick;
             _timer.Start();
 
-            _timer2 = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
+            _timer2 = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(250) };
             _timer2.Tick += _timer2_Tick;
             _timer2.Start();
 
@@ -237,16 +237,17 @@ namespace MercuryController
             // L R Trigger 0,255
 
             //Right
-            double RightY = state.Gamepad.RightThumbY;
+            double RightY = deadband(((float)state.Gamepad.RightThumbY)/32768, .2);
+
             //Throttle
-            double throttle = ( ( RightY + 32768 ) * 0.00389099122 );
+            double throttle = RightY * 127 + 127;
             //throttle byte
             byte thr = (Byte) throttle;
 
             //Left
-            double LeftY = state.Gamepad.LeftThumbY;
+            double LeftX = deadband(((float)state.Gamepad.LeftThumbY)/32768, .2);
             //Steering
-            double steering = ( ( LeftY + 32768 ) * 0.00389099122 );
+            double steering = LeftX * 127 + 127;
             //throttle byte
             byte steer = (Byte)steering;
 
@@ -261,6 +262,7 @@ namespace MercuryController
             aux[1] = (byte)((buttons & 0xFF00) >> 8);
     
             byte[] packet = new byte[10];
+            Console.WriteLine();
 
             //Generate Noraml Packet
             if( true )
@@ -291,7 +293,21 @@ namespace MercuryController
 
         }
 
-        
+        public double deadband(double JoystickValue, double DeadbandCutOff)
+        {
+            
+            double deadbandreturn;
+            if (Math.Abs(JoystickValue) < DeadbandCutOff) {
+                deadbandreturn = 0;
+            }
+            else {
+                deadbandreturn = (JoystickValue - (Math.Abs(JoystickValue) / JoystickValue * DeadbandCutOff)) / (1 - DeadbandCutOff);
+            }
+            Console.Write(deadbandreturn + " ");
+            return deadbandreturn;
+        }
+
+
         void MainWindow_Closing(object sender, CancelEventArgs e)
         {
             _controller = null;
