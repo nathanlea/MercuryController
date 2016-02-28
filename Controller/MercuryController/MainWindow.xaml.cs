@@ -42,7 +42,7 @@ namespace MercuryController
             _timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(150) };
             _timer.Tick += _timer_Tick;
             _timer.Start();
-
+            
             _timer2 = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(250) };
             _timer2.Tick += _timer2_Tick;
             _timer2.Start();
@@ -237,19 +237,49 @@ namespace MercuryController
             // L R Trigger 0,255
 
             //Right
-            double RightY = deadband(((float)state.Gamepad.RightThumbY)/32768, .2);
-
-            //Throttle
-            double throttle = RightY * 127 + 127;
-            //throttle byte
-            byte thr = (Byte) throttle;
-
+            double RightY = ((double)state.Gamepad.RightThumbY )/ 32768;//deadband(((float)state.Gamepad.RightThumbY)/32768, .2);
             //Left
-            double LeftX = deadband(((float)state.Gamepad.LeftThumbY)/32768, .2);
-            //Steering
-            double steering = LeftX * 127 + 127;
-            //throttle byte
-            byte steer = (Byte)steering;
+            double RightX = ((double)state.Gamepad.RightThumbX )/ 32768 ;//deadband(((float)state.Gamepad.RightThumbY)/32768, .2);
+
+            double magnitude = Math.Sqrt(Math.Pow(RightY, 2) + Math.Pow(RightX, 2));
+            double angle = Math.Atan2(RightY, RightX);
+            double stickScale = Math.Cos(angle * 2);
+
+            double LMotor = 0, RMotor = 0;
+
+            stickScale = Math.Abs(stickScale);
+
+            //Console.WriteLine(stickScale);
+
+            if (angle > 0 && angle < Math.PI / 2) // Quadrant I 
+            {
+                LMotor = -1 * magnitude;
+                RMotor = stickScale * magnitude;
+            }
+            else if (angle > Math.PI / 2 && angle < Math.PI) // Quadrant II
+            {
+                LMotor = -1 * stickScale * magnitude;
+                RMotor = magnitude;
+            }
+            else if (angle > -1 * Math.PI && angle < -1 * Math.PI / 2) // Quadrant III
+            {
+                LMotor = magnitude;
+                RMotor = stickScale * magnitude;
+            }
+            else if (angle > -1 * Math.PI / 2 && angle < 0) // Quadrant IV
+            {
+                LMotor = -1 * stickScale * magnitude;
+                RMotor = -1 * magnitude;
+            }
+
+            LMotor = deadband(LMotor, .18);
+            RMotor = deadband(RMotor, .18);
+            
+            LMotor = LMotor > 1.0 ? 1.0 : LMotor;
+            RMotor = RMotor > 1.0 ? 1.0 : RMotor;
+
+            byte thr = (Byte)(RMotor * 127 + 127);
+            byte steer = (Byte)(LMotor * 127 + 127);            
 
             //servo
             byte[] servo = new byte[3];
@@ -262,7 +292,7 @@ namespace MercuryController
             aux[1] = (byte)((buttons & 0xFF00) >> 8);
     
             byte[] packet = new byte[10];
-            Console.WriteLine();
+            //Console.WriteLine();
 
             //Generate Noraml Packet
             if( true )
@@ -303,7 +333,6 @@ namespace MercuryController
             else {
                 deadbandreturn = (JoystickValue - (Math.Abs(JoystickValue) / JoystickValue * DeadbandCutOff)) / (1 - DeadbandCutOff);
             }
-            Console.Write(deadbandreturn + " ");
             return deadbandreturn;
         }
 
