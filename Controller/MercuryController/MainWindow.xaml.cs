@@ -243,33 +243,52 @@ namespace MercuryController
 
             double magnitude = Math.Sqrt(Math.Pow(RightY, 2) + Math.Pow(RightX, 2));
             double angle = Math.Atan2(RightY, RightX);
-            double stickScale = Math.Cos(angle * 2);
 
             double LMotor = 0, RMotor = 0;
-
-            stickScale = Math.Abs(stickScale);
-
-            //Console.WriteLine(stickScale);
-
-            if (angle > 0 && angle < Math.PI / 2) // Quadrant I 
+            
+            if( angle < Math.PI / 6 && angle > -1 * Math.PI / 6 )
             {
+                //Left
+                LMotor = -0.5 * magnitude;
+                RMotor = -0.5 * magnitude;
+            } else if ( angle > 2 * Math.PI / 6 && angle < 4 * Math.PI / 6 )
+            {
+                //Forward
                 LMotor = -1 * magnitude;
-                RMotor = stickScale * magnitude;
-            }
-            else if (angle > Math.PI / 2 && angle < Math.PI) // Quadrant II
+                RMotor = magnitude * 0.85;
+            } else if ( (angle > 5 * Math.PI / 6 && angle < Math.PI) || (angle < -5 * Math.PI / 6 && angle > -1 * Math.PI))
             {
-                LMotor = -1 * stickScale * magnitude;
-                RMotor = magnitude;
-            }
-            else if (angle > -1 * Math.PI && angle < -1 * Math.PI / 2) // Quadrant III
+                //Right
+                LMotor = 0.5 * magnitude;
+                RMotor = 0.5 * magnitude;
+            } else if ( angle < -2 * Math.PI / 6 && angle > -4 * Math.PI / 6 )
             {
+                //Backwards
                 LMotor = magnitude;
-                RMotor = stickScale * magnitude;
-            }
-            else if (angle > -1 * Math.PI / 2 && angle < 0) // Quadrant IV
+                RMotor = -.8 * magnitude;
+            } else if (angle > Math.PI / 6 && angle < 2 * Math.PI / 6) ////////////////////////
             {
-                LMotor = -1 * stickScale * magnitude;
-                RMotor = -1 * magnitude;
+                //Light Right
+                LMotor = -1 * magnitude * 0.5;
+                RMotor = magnitude * 0.8 * 0.5;
+            }
+            else if (angle < 5 * Math.PI && angle > 4 * Math.PI / 6)
+            {
+                //Light Left
+                LMotor = magnitude * 0.8 * 0.5;
+                RMotor = magnitude * 0.5;
+            }
+            else if ( angle > -5 * Math.PI / 6 && angle > -4 * Math.PI / 6)
+            {
+                //Back Left
+                LMotor = magnitude * 0.8 * 0.5;
+                RMotor = -1 * magnitude * 0.5;
+            }
+            else if (angle > -2 * Math.PI / 6 && angle < -1 * Math.PI / 6)
+            {
+                //Back Right
+                LMotor = -1 * magnitude * 0.5;
+                RMotor = -1 * magnitude * 0.8 * 0.5;
             }
 
             LMotor = deadband(LMotor, .18);
