@@ -58,7 +58,7 @@ namespace MercuryController
         {
             if (!Connected)
             {
-                string ServIP = "192.168.1.2";//change this to your server ip
+                string ServIP = "192.168.1.3";//change this to your server ip
                 InitializeConnection(ServIP);
             }
             else
@@ -242,53 +242,68 @@ namespace MercuryController
             double RightX = ((double)state.Gamepad.RightThumbX )/ 32768 ;//deadband(((float)state.Gamepad.RightThumbY)/32768, .2);
 
             double magnitude = Math.Sqrt(Math.Pow(RightY, 2) + Math.Pow(RightX, 2));
+            //double magnitude = ((double)state.Gamepad.RightTrigger) / 255;//Math.Sqrt(Math.Pow(RightY, 2) + Math.Pow(RightX, 2));
             double angle = Math.Atan2(RightY, RightX);
 
             double LMotor = 0, RMotor = 0;
             
-            if( angle < Math.PI / 6 && angle > -1 * Math.PI / 6 )
+            if( angle < ( Math.PI / 6 ) && angle > ( -1 * ( Math.PI / 6 ) ) )
             {
                 //Left
                 LMotor = -0.5 * magnitude;
                 RMotor = -0.5 * magnitude;
-            } else if ( angle > 2 * Math.PI / 6 && angle < 4 * Math.PI / 6 )
+                //Console.WriteLine("1");
+            } else if ( angle >= 2 * Math.PI / 6 && angle <= 4 * Math.PI / 6 )
             {
                 //Forward
                 LMotor = -1 * magnitude;
                 RMotor = magnitude * 0.85;
+                //Console.WriteLine("2");
             } else if ( (angle > 5 * Math.PI / 6 && angle < Math.PI) || (angle < -5 * Math.PI / 6 && angle > -1 * Math.PI))
             {
                 //Right
                 LMotor = 0.5 * magnitude;
                 RMotor = 0.5 * magnitude;
-            } else if ( angle < -2 * Math.PI / 6 && angle > -4 * Math.PI / 6 )
+                //Console.WriteLine("3");
+            } else if ( angle <= ( -2 * Math.PI / 6 ) && angle >= ( -4 * Math.PI / 6 ) )
             {
                 //Backwards
                 LMotor = magnitude;
                 RMotor = -.8 * magnitude;
-            } else if (angle > Math.PI / 6 && angle < 2 * Math.PI / 6) ////////////////////////
+                //Console.WriteLine("4");
+            } else if (angle > ( Math.PI / 6 ) && angle < ( 2 * Math.PI / 6 )) ////////////////////////
             {
                 //Light Right
                 LMotor = -1 * magnitude * 0.5;
                 RMotor = magnitude * 0.8 * 0.5;
+                Console.WriteLine("5");
             }
-            else if (angle < 5 * Math.PI && angle > 4 * Math.PI / 6)
+            else if (angle < ( 5 * Math.PI ) && angle > ( 4 * Math.PI / 6 ))
             {
                 //Light Left
                 LMotor = magnitude * 0.8 * 0.5;
                 RMotor = magnitude * 0.5;
+                Console.WriteLine("6");
             }
             else if ( angle > -5 * Math.PI / 6 && angle > -4 * Math.PI / 6)
             {
                 //Back Left
                 LMotor = magnitude * 0.8 * 0.5;
                 RMotor = -1 * magnitude * 0.5;
+                //Console.WriteLine("7");
             }
             else if (angle > -2 * Math.PI / 6 && angle < -1 * Math.PI / 6)
             {
                 //Back Right
                 LMotor = -1 * magnitude * 0.5;
                 RMotor = -1 * magnitude * 0.8 * 0.5;
+                //Console.WriteLine("8");
+            } else
+            {
+                //Forward
+                LMotor = -1 * magnitude;
+                RMotor = magnitude * 0.85;
+                //Console.WriteLine("9");
             }
 
             LMotor = deadband(LMotor, .18);
@@ -296,6 +311,11 @@ namespace MercuryController
             
             LMotor = LMotor > 1.0 ? 1.0 : LMotor;
             RMotor = RMotor > 1.0 ? 1.0 : RMotor;
+
+            LMotor = LMotor < -1.0 ? -1.0 : LMotor;
+            RMotor = RMotor < -1.0 ? -1.0 : RMotor;
+
+            //Console.WriteLine("1");"" + LMotor + " " + RMotor);
 
             byte thr = (Byte)(RMotor * 127 + 127);
             byte steer = (Byte)(LMotor * 127 + 127);            
