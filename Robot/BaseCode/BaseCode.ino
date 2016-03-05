@@ -7,6 +7,7 @@ boolean stringComplete = false;  // whether the string is complete
 char message[24] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 char messB[12] = {0,0,0,0,0,0,0,0,0,0,0};
 char packet[11] = {0,0,0,0,0,0,0,0,0,0};
+double scale = 0.0;
 
 void setup() {
   delay(1000);
@@ -14,7 +15,7 @@ void setup() {
   Serial.begin(9600);
   // reserve 200 bytes for the inputString:
   md.init();
-  md.setBrakes(1,1);
+  md.setBrakes(0,0);
   inputString.reserve(200);
 }
 
@@ -44,14 +45,44 @@ void loop() {
         int throttle = packet[1] & 0xFF;
         steering-=127;
         throttle-=127;
-        md.setSpeeds(throttle, steering);
-        //md.setM1Speed(throttle);
-        //md.setM2Speed(steering);
+        switch (packet[7]) {
+          case 0x1:
+            steering/=4;
+            throttle/=4;
+            break;
+          case 0x2:
+            steering/=2;
+            throttle/=2;
+            break;
+          case 0x4:
+            steering;
+            throttle;
+            break;
+          case 0x8:
+            steering*=1.125;
+            throttle*=1.125;
+            break;
+          case 0x10:
+            steering*=1.25;
+            throttle*=1.25;
+            break;
+          case 0x20:
+            steering*=1.4;
+            throttle*=1.4;
+            break;
+          case 0x40:
+            steering*=1.56;
+            throttle*=1.56;
+            break;
+          default:
+            steering = 0;
+            throttle = 0;
+            break;          
+        }        
+        md.setM1Speed((throttle*.75));
+        md.setM2Speed(steering);
       }
     }
-    
-
-    
     // clear the string:
     inputString = "";
     stringComplete = false;
