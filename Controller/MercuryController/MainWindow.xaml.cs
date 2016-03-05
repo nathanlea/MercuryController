@@ -31,7 +31,7 @@ namespace MercuryController
         private Thread thrMessaging;
         private byte Tries = 0;
         private bool Connected = false;
-
+        private int driveMode = 0x0;
         private byte[] sendArray = new byte[11];
         public MainWindow()
         {
@@ -223,7 +223,25 @@ namespace MercuryController
             RightAxis = string.Format("X: {0} Y: {1}", state.Gamepad.RightThumbX, state.Gamepad.RightThumbY);
             ZAxis = string.Format("R: {0} L: {1}", state.Gamepad.RightTrigger, state.Gamepad.LeftTrigger);
             Buttons = string.Format("{0}", state.Gamepad.Buttons);
-
+            int A = (int)state.Gamepad.Buttons;
+            
+            A &= 0x1000;
+            if(A != 0)
+            {
+                if(driveMode == 0)
+                {
+                    driveMode = 1;
+                }
+                else
+                {
+                    driveMode = (driveMode << 0x0001);
+                }
+                
+                if (driveMode == 0x80)
+                {
+                    driveMode = 0;
+                }
+            }
             xAxis.Content = LeftAxis;
             yAxis.Content = RightAxis;
             triggers.Content = ZAxis;
@@ -240,72 +258,45 @@ namespace MercuryController
             double RightY = ((double)state.Gamepad.RightThumbY )/ 32768;//deadband(((float)state.Gamepad.RightThumbY)/32768, .2);
             //Left
             double RightX = ((double)state.Gamepad.RightThumbX )/ 32768 ;//deadband(((float)state.Gamepad.RightThumbY)/32768, .2);
-
-            double magnitude = Math.Sqrt(Math.Pow(RightY, 2) + Math.Pow(RightX, 2));
-            //double magnitude = ((double)state.Gamepad.RightTrigger) / 255;//Math.Sqrt(Math.Pow(RightY, 2) + Math.Pow(RightX, 2));
+            double stickMag = Math.Sqrt(Math.Pow(RightY, 2) + Math.Pow(RightX, 2));
             double angle = Math.Atan2(RightY, RightX);
-
-            double LMotor = 0, RMotor = 0;
+            double RightTrigger = state.Gamepad.RightTrigger;
+            double LeftTrigger = state.Gamepad.LeftTrigger;
+            double back = 1;
+            double magnitude = 0;
+            double LMotor = 0;
+            double RMotor = 0;
+            if(LeftTrigger > 20)
+            {
+                back = -back;
+                magnitude = LeftTrigger / 255;
+            }
+            else
+            {
+                magnitude = RightTrigger / 255;
+            }
+            if(stickMag > .3)
+            {
+                if(Math.Abs(angle)> Math.PI / 2)
+                {
+                    LMotor = back * magnitude * (1 + Math.Cos(angle));
+                    RMotor = back * magnitude;
+                }
+                else
+                {
+                    LMotor = back * magnitude;
+                    RMotor = back * magnitude * (1 - Math.Cos(angle));
+                }
+            }
+            else
+            {
+                LMotor = back * magnitude;
+                RMotor = back * magnitude;
+            }
             
-            if( angle < ( Math.PI / 6 ) && angle > ( -1 * ( Math.PI / 6 ) ) )
-            {
-                //Left
-                LMotor = -0.5 * magnitude;
-                RMotor = -0.5 * magnitude;
-                //Console.WriteLine("1");
-            } else if ( angle >= 2 * Math.PI / 6 && angle <= 4 * Math.PI / 6 )
-            {
-                //Forward
-                LMotor = -1 * magnitude;
-                RMotor = magnitude * 0.85;
-                //Console.WriteLine("2");
-            } else if ( (angle > 5 * Math.PI / 6 && angle < Math.PI) || (angle < -5 * Math.PI / 6 && angle > -1 * Math.PI))
-            {
-                //Right
-                LMotor = 0.5 * magnitude;
-                RMotor = 0.5 * magnitude;
-                //Console.WriteLine("3");
-            } else if ( angle <= ( -2 * Math.PI / 6 ) && angle >= ( -4 * Math.PI / 6 ) )
-            {
-                //Backwards
-                LMotor = magnitude;
-                RMotor = -.8 * magnitude;
-                //Console.WriteLine("4");
-            } else if (angle > ( Math.PI / 6 ) && angle < ( 2 * Math.PI / 6 )) ////////////////////////
-            {
-                //Light Right
-                LMotor = -1 * magnitude * 0.5;
-                RMotor = magnitude * 0.8 * 0.5;
-                Console.WriteLine("5");
-            }
-            else if (angle < ( 5 * Math.PI ) && angle > ( 4 * Math.PI / 6 ))
-            {
-                //Light Left
-                LMotor = magnitude * 0.8 * 0.5;
-                RMotor = magnitude * 0.5;
-                Console.WriteLine("6");
-            }
-            else if ( angle > -5 * Math.PI / 6 && angle > -4 * Math.PI / 6)
-            {
-                //Back Left
-                LMotor = magnitude * 0.8 * 0.5;
-                RMotor = -1 * magnitude * 0.5;
-                //Console.WriteLine("7");
-            }
-            else if (angle > -2 * Math.PI / 6 && angle < -1 * Math.PI / 6)
-            {
-                //Back Right
-                LMotor = -1 * magnitude * 0.5;
-                RMotor = -1 * magnitude * 0.8 * 0.5;
-                //Console.WriteLine("8");
-            } else
-            {
-                //Forward
-                LMotor = -1 * magnitude;
-                RMotor = magnitude * 0.85;
-                //Console.WriteLine("9");
-            }
-
+            
+            
+            
             LMotor = deadband(LMotor, .18);
             RMotor = deadband(RMotor, .18);
             
@@ -314,7 +305,6 @@ namespace MercuryController
 
             LMotor = LMotor < -1.0 ? -1.0 : LMotor;
             RMotor = RMotor < -1.0 ? -1.0 : RMotor;
-
             //Console.WriteLine("1");"" + LMotor + " " + RMotor);
 
             byte thr = (Byte)(RMotor * 127 + 127);
@@ -328,7 +318,7 @@ namespace MercuryController
             int buttons = (int) state.Gamepad.Buttons;
             //Console.WriteLine(buttons);
             aux[0] = (byte)( buttons & 0xFF );
-            aux[1] = (byte)((buttons & 0xFF00) >> 8);
+            aux[1] = (byte)driveMode;
     
             byte[] packet = new byte[10];
             //Console.WriteLine();
