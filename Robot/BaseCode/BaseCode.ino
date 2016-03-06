@@ -41,6 +41,10 @@ void loop() {
       byte sum = packet[0]+packet[1]+packet[2]+packet[3]+packet[4]+packet[5]+packet[6]+packet[7];
       //Checksum
       if(sum==(packet[8]&0xFF)) {
+        
+        if(packet([1]&0x01) {
+          //launch
+        }        
         int steering = packet[2] & 0xFF;
         int throttle = packet[1] & 0xFF;
         steering-=127;
@@ -81,6 +85,34 @@ void loop() {
         }        
         md.setM1Speed((throttle*.75));
         md.setM2Speed(steering);
+
+        switch (packet[6]) {
+          case 0x1:
+            md.setBrakes(0,0);
+            break;
+          case 0x2:
+            md.setBrakes(50,50);
+            break;
+          case 0x4:
+            md.setBrakes(100,1000);
+            break;
+          case 0x8:
+            md.setBrakes(200,200);
+            break;
+          case 0x10:
+            md.setBrakes(250,250);
+            break;
+          case 0x20:
+            md.setBrakes(300,300);
+            break;
+          case 0x40:
+            md.setBrakes(400,0);
+            break;
+          default:
+            md.setBrakes(0,0);
+            break;          
+        }
+        
       }
     }
     // clear the string:
