@@ -8,6 +8,7 @@ using System.Threading;
 using System.Net;
 using System.IO;
 using System.Net.Sockets;
+using System.Windows.Media;
 
 namespace MercuryController
 {
@@ -30,8 +31,8 @@ namespace MercuryController
         private TcpClient tcpServer;
         private Thread thrMessaging;
         private byte Tries = 0;
-        private bool Connected = false;
-        private int driveMode = 0x0;
+        private bool Connected = false, launch = false, armedLaunch = false;
+        private int driveMode = 0x0, brakeMode = 0x0;
         private byte[] sendArray = new byte[11];
         public MainWindow()
         {
@@ -42,7 +43,9 @@ namespace MercuryController
             _timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(150) };
             _timer.Tick += _timer_Tick;
             _timer.Start();
-            
+
+            connectedIndicator.Fill = new SolidColorBrush(Color.FromArgb(255, 255, 0, 0));
+
             _timer2 = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(250) };
             _timer2.Tick += _timer2_Tick;
             _timer2.Start();
@@ -89,7 +92,7 @@ namespace MercuryController
             string ConResponse = srReceiver.ReadLine();
             if (ConResponse[0] == '*')
             {
-                Console.WriteLine("CONNECTED");
+                connectedIndicator.Fill = new SolidColorBrush(Color.FromArgb(255, 0, 255, 0));
             }
             else
             {
@@ -219,13 +222,17 @@ namespace MercuryController
         void DisplayControllerInformation()
         {
             var state = _controller.GetState();
-            LeftAxis = string.Format("X: {0} Y: {1}", state.Gamepad.LeftThumbX, state.Gamepad.LeftThumbY);
+           /* LeftAxis = string.Format("X: {0} Y: {1}", state.Gamepad.LeftThumbX, state.Gamepad.LeftThumbY);
             RightAxis = string.Format("X: {0} Y: {1}", state.Gamepad.RightThumbX, state.Gamepad.RightThumbY);
             ZAxis = string.Format("R: {0} L: {1}", state.Gamepad.RightTrigger, state.Gamepad.LeftTrigger);
-            Buttons = string.Format("{0}", state.Gamepad.Buttons);
+            Buttons = string.Format("{0}", state.Gamepad.Buttons);*/
             int A = (int)state.Gamepad.Buttons;
-            
+            int B = (int)state.Gamepad.Buttons;
+            int LS = (int)state.Gamepad.Buttons & 0x100;
+            int RS = (int)state.Gamepad.Buttons & 0x200;
+            int start = (int)state.Gamepad.Buttons & 0x10;
             A &= 0x1000;
+            B &= 0x2000;
             if(A != 0)
             {
                 if(driveMode == 0)
@@ -234,7 +241,7 @@ namespace MercuryController
                 }
                 else
                 {
-                    driveMode = (driveMode << 0x0001);
+                    driveMode = (driveMode << 0x1);
                 }
                 
                 if (driveMode == 0x80)
@@ -242,10 +249,26 @@ namespace MercuryController
                     driveMode = 0;
                 }
             }
-            xAxis.Content = LeftAxis;
+            if (B != 0)
+            {
+                if (brakeMode == 0)
+                {
+                    brakeMode = 1;
+                }
+                else
+                {
+                    brakeMode = (brakeMode << 0x1);
+                }
+
+                if (brakeMode == 0x80)
+                {
+                    brakeMode = 0;
+                }
+            }
+           /* xAxis.Content = LeftAxis;
             yAxis.Content = RightAxis;
             triggers.Content = ZAxis;
-            buttonsLabel.Content = Buttons;
+            buttonsLabel.Content = Buttons;*/
 
             // LY  -32768,32767
             // LX  -32768,32767
@@ -255,9 +278,9 @@ namespace MercuryController
             // L R Trigger 0,255
 
             //Right
-            double RightY = ((double)state.Gamepad.RightThumbY )/ 32768;//deadband(((float)state.Gamepad.RightThumbY)/32768, .2);
+            double RightY = ((double)state.Gamepad.RightThumbY )/ 32768;
             //Left
-            double RightX = ((double)state.Gamepad.RightThumbX )/ 32768 ;//deadband(((float)state.Gamepad.RightThumbY)/32768, .2);
+            double RightX = ((double)state.Gamepad.RightThumbX )/ 32768 ;
             double stickMag = Math.Sqrt(Math.Pow(RightY, 2) + Math.Pow(RightX, 2));
             double angle = Math.Atan2(RightY, RightX);
             double RightTrigger = state.Gamepad.RightTrigger;
@@ -292,10 +315,7 @@ namespace MercuryController
             {
                 LMotor = back * magnitude;
                 RMotor = back * magnitude;
-            }
-            
-            
-            
+            }            
             
             LMotor = deadband(LMotor, .18);
             RMotor = deadband(RMotor, .18);
@@ -305,23 +325,22 @@ namespace MercuryController
 
             LMotor = LMotor < -1.0 ? -1.0 : LMotor;
             RMotor = RMotor < -1.0 ? -1.0 : RMotor;
-            //Console.WriteLine("1");"" + LMotor + " " + RMotor);
+
+            
 
             byte thr = (Byte)(RMotor * 127 + 127);
-            byte steer = (Byte)(LMotor * 127 + 127);            
+            byte steer = (Byte)(LMotor * 127 + 127);
 
             //servo
             byte[] servo = new byte[3];
+            servo[0] = launch ? (byte)0x1 : (byte)0x0;
 
             //AUX?
             byte[] aux = new byte[2];
-            int buttons = (int) state.Gamepad.Buttons;
-            //Console.WriteLine(buttons);
-            aux[0] = (byte)( buttons & 0xFF );
+            aux[0] = (byte)brakeMode;
             aux[1] = (byte)driveMode;
     
             byte[] packet = new byte[10];
-            //Console.WriteLine();
 
             //Generate Noraml Packet
             if( true )
@@ -347,7 +366,64 @@ namespace MercuryController
                 stuffedPacket.CopyTo(sendArray, 0);
 
                 pingTimeLabel.Content = _pingTime;
+                LMotorSpeed.Value = ((int)thr) - 127;
+                RMotorSpeed.Value = ((int)steer) - 127;
 
+                var tempDriveMode = driveMode;
+                
+                for(int i = 1; driveMode != 0 && i <= 7; i++)
+                {
+                    if ((tempDriveMode & 0x01) == 1)
+                    {
+                        speedLevelSlider.Value = i;
+                        break;
+                    }
+                    tempDriveMode = tempDriveMode >> 1;
+                }
+                if (tempDriveMode == 0)
+                {
+                    speedLevelSlider.Value = 0;
+                }
+                var tempBrakeMode = brakeMode;
+
+                for (int i = 1; brakeMode != 0 && i <= 7; i++)
+                {
+                    if ((tempBrakeMode & 0x01) == 1)
+                    {
+                        brakeLevelSlider.Value = i;
+                        break;
+                    }
+                    tempBrakeMode = tempBrakeMode >> 1;
+                }
+                if (tempBrakeMode == 0)
+                {
+                    brakeLevelSlider.Value = 0;
+                }
+
+                //Launch Logic
+                if (armedLaunch && LS != 0 && RS != 0 && start != 0)
+                {
+                    armedLaunch = false;
+                    launch = true;
+                    launchColorBox.Fill = new SolidColorBrush(Color.FromArgb(200, 255, 0, 0));
+                    launchWordLabel.Content = "LAUNCHED";
+                }
+                else
+                {  
+                    if (LS != 0 && RS != 0)
+                    {
+                        armedLaunch = true;
+                        launchColorBox.Fill = new SolidColorBrush(Color.FromArgb(200, 0, 255, 0));
+                        launchWordLabel.Content = "ARMED";
+                    }
+                    else
+                    {
+                        armedLaunch = false;
+                        launch = false;
+                        launchColorBox.Fill = new SolidColorBrush(Color.FromArgb(0, 0, 0, 0));
+                        launchWordLabel.Content = "disengaged";
+                    }                    
+                }
             }
 
         }

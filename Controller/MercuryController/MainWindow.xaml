@@ -5,21 +5,72 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:MercuryController"
         mc:Ignorable="d"
-        Title="MainWindow" Height="350" Width="525">
-    <Grid>
+        Title="MainWindow" Height="350" Width="621.399">
+    <Grid Margin="0,0,2,0">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="17*"/>
-            <ColumnDefinition Width="373*"/>
-            <ColumnDefinition Width="127*"/>
+            <ColumnDefinition Width="20*"/>
+            <ColumnDefinition Width="386*"/>
+            <ColumnDefinition Width="205*"/>
         </Grid.ColumnDefinitions>
-        <Label x:Name="xAxis" Content="Label" HorizontalAlignment="Left" Margin="1,60,0,0" VerticalAlignment="Top" Width="372" Grid.Column="1" Height="26"/>
-        <Label x:Name="yAxis" Content="Label" HorizontalAlignment="Left" Margin="1,91,0,0" VerticalAlignment="Top" Width="460" Grid.Column="1" Height="26" Grid.ColumnSpan="2"/>
-        <Label x:Name="buttonsLabel" Content="Label" HorizontalAlignment="Left" Margin="1,148,0,0" VerticalAlignment="Top" Width="460" Grid.Column="1" Height="26" Grid.ColumnSpan="2"/>
-        <Label x:Name="triggers" Content="Label" HorizontalAlignment="Left" Margin="1,117,0,0" VerticalAlignment="Top" Width="460" Grid.Column="1" Height="26" Grid.ColumnSpan="2"/>
-        <Label x:Name="packetLabel" Content="Label" HorizontalAlignment="Left" Margin="1,224,0,0" VerticalAlignment="Top" Width="460" Grid.Column="1" Height="26" Grid.ColumnSpan="2"/>
-        <Label x:Name="packetLabelCOBS" Content="Label" HorizontalAlignment="Left" Margin="1,255,0,0" VerticalAlignment="Top" Width="460" Grid.Column="1" Height="26" Grid.ColumnSpan="2"/>
+        <Label x:Name="xAxis" Content="Label" HorizontalAlignment="Left" Margin="1,60,0,0" VerticalAlignment="Top" Width="223" Grid.Column="1" Height="26" Visibility="Hidden"/>
+        <Label x:Name="yAxis" Content="Label" HorizontalAlignment="Left" Margin="1,91,0,0" VerticalAlignment="Top" Width="223" Grid.Column="1" Height="26" Visibility="Hidden"/>
+        <Label x:Name="buttonsLabel" Content="Label" HorizontalAlignment="Left" Margin="1,148,0,0" VerticalAlignment="Top" Width="223" Grid.Column="1" Height="26" Visibility="Hidden"/>
+        <Label x:Name="triggers" Content="Label" HorizontalAlignment="Left" Margin="1,117,0,0" VerticalAlignment="Top" Width="223" Grid.Column="1" Height="26" Visibility="Hidden"/>
+        <Label x:Name="packetLabel" Content="Label" HorizontalAlignment="Left" Margin="0,172,0,0" VerticalAlignment="Top" Width="224" Grid.Column="1" Height="26" Visibility="Hidden"/>
+        <Label x:Name="packetLabelCOBS" Content="Label" HorizontalAlignment="Left" Margin="10,270,0,0" VerticalAlignment="Top" Width="386" Height="26" Grid.ColumnSpan="2"/>
         <Label x:Name="label" Content="Ping Time:" Grid.Column="2" HorizontalAlignment="Left" Margin="10,32,0,0" VerticalAlignment="Top" Height="26" Width="78"/>
-        <Label x:Name="pingTimeLabel" Content="42" Grid.Column="2" HorizontalAlignment="Left" Margin="79,32,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.748,0.37" Width="38"/>
+        <Label x:Name="pingTimeLabel" Content="42" Grid.Column="2" HorizontalAlignment="Left" Margin="79,32,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.748,0.37" Width="38" Height="26"/>
+        <Slider x:Name="speedLevelSlider" Grid.Column="2" HorizontalAlignment="Left" Margin="93,182,0,0" VerticalAlignment="Top" Height="127" Maximum="7" Orientation="Vertical" SmallChange="0" TickPlacement="TopLeft" Cursor="None" IsEnabled="False" Width="26"/>
+        <Label x:Name="slider_title" Content="Speed Level" Grid.Column="2" HorizontalAlignment="Left" Margin="56,160,0,0" VerticalAlignment="Top" Width="61" FontSize="9.333" Height="22"/>
+        <Label x:Name="slider_label7" Content="7" Grid.Column="2" HorizontalAlignment="Left" Margin="84,181,0,0" VerticalAlignment="Top" FontSize="8" Height="14" Padding="0" Width="4"/>
+        <Label x:Name="slider_label6" Content="6" Grid.Column="2" HorizontalAlignment="Left" Margin="84,197,0,0" VerticalAlignment="Top" FontSize="8" Height="14" Padding="0" Width="4"/>
+        <Label x:Name="slider_label5" Content="5" Grid.Column="2" Margin="84,213,0,0" VerticalAlignment="Top" FontSize="8" Height="14" Padding="0" HorizontalAlignment="Left" Width="4"/>
+        <Label x:Name="slider_label4" Content="4" Grid.Column="2" HorizontalAlignment="Left" Margin="84,230,0,0" VerticalAlignment="Top" FontSize="8" Height="14" Padding="0" Width="4"/>
+        <Label x:Name="slider_label3" Content="3" Grid.Column="2" HorizontalAlignment="Left" Margin="84,246,0,0" VerticalAlignment="Top" FontSize="8" Height="14" Padding="0" Width="4"/>
+        <Label x:Name="slider_label2" Content="2" Grid.Column="2" HorizontalAlignment="Left" Margin="84,263,0,0" VerticalAlignment="Top" FontSize="8" Height="14" Padding="0" Width="4"/>
+        <Label x:Name="slider_label1" Content="1" Grid.Column="2" HorizontalAlignment="Left" Margin="84,280,0,0" VerticalAlignment="Top" FontSize="8" Height="14" Padding="0" Width="4"/>
+        <Label x:Name="slider_label0" Content="(disabled) 0" Grid.Column="2" HorizontalAlignment="Left" Margin="47,296,0,0" VerticalAlignment="Top" FontSize="8" Height="14" Padding="0" Width="41"/>
+        <Label x:Name="label1" Content="Motor Speed" Grid.Column="2" HorizontalAlignment="Left" Margin="0,161,0,0" VerticalAlignment="Top" FontSize="8" Height="21" Width="56"/>
+        <Slider x:Name="LMotorSpeed" Grid.Column="2" HorizontalAlignment="Left" Margin="5,182,0,0" VerticalAlignment="Top" Height="115" Width="20" Orientation="Vertical" Maximum="127" Minimum="-127"/>
+        <Slider x:Name="RMotorSpeed" Grid.Column="2" HorizontalAlignment="Left" Margin="30,182,0,0" VerticalAlignment="Top" Height="115" Width="20" Orientation="Vertical" Maximum="127" Minimum="-127"/>
+        <Slider x:Name="brakeLevelSlider" Grid.Column="2" HorizontalAlignment="Left" Margin="170,182,0,0" VerticalAlignment="Top" Height="127" Maximum="7" Orientation="Vertical" SmallChange="0" TickPlacement="TopLeft" Cursor="None" IsEnabled="False" Width="26"/>
+        <Label x:Name="slider_title_brake" Content="Brake Level" Grid.Column="2" HorizontalAlignment="Left" Margin="133,160,0,0" VerticalAlignment="Top" Width="61" FontSize="9.333" Height="22"/>
+        <Label x:Name="slider_label7_brake" Content="7" Grid.Column="2" HorizontalAlignment="Left" Margin="161,181,0,0" VerticalAlignment="Top" FontSize="8" Height="14" Padding="0" Width="4"/>
+        <Label x:Name="slider_label6_brake" Content="6" Grid.Column="2" HorizontalAlignment="Left" Margin="161,197,0,0" VerticalAlignment="Top" FontSize="8" Height="14" Padding="0" Width="4"/>
+        <Label x:Name="slider_label5_brake" Content="5" Grid.Column="2" Margin="161,213,0,0" VerticalAlignment="Top" FontSize="8" Height="14" Padding="0" HorizontalAlignment="Left" Width="4"/>
+        <Label x:Name="slider_label4_brake" Content="4" Grid.Column="2" HorizontalAlignment="Left" Margin="161,230,0,0" VerticalAlignment="Top" FontSize="8" Height="14" Padding="0" Width="4"/>
+        <Label x:Name="slider_label3_brake" Content="3" Grid.Column="2" HorizontalAlignment="Left" Margin="161,246,0,0" VerticalAlignment="Top" FontSize="8" Height="14" Padding="0" Width="4"/>
+        <Label x:Name="slider_label2_brake" Content="2" Grid.Column="2" HorizontalAlignment="Left" Margin="161,263,0,0" VerticalAlignment="Top" FontSize="8" Height="14" Padding="0" Width="4"/>
+        <Label x:Name="slider_label1_brake" Content="1" Grid.Column="2" HorizontalAlignment="Left" Margin="161,280,0,0" VerticalAlignment="Top" FontSize="8" Height="14" Padding="0" Width="4"/>
+        <Label x:Name="slider_label0_brake" Content="(disabled) 0" Grid.Column="2" HorizontalAlignment="Left" Margin="124,296,0,0" VerticalAlignment="Top" FontSize="8" Height="14" Padding="0" Width="41"/>
+        <Rectangle x:Name="connectedIndicator" Fill="#FFF4F4F5" HorizontalAlignment="Left" Height="23" Margin="0,296,0,0" Stroke="Black" VerticalAlignment="Top" Width="406" Grid.ColumnSpan="2"/>
+        <Image x:Name="smallCar_png" Grid.Column="1" Margin="271,168,75,75" Source="smallCar.png" Stretch="Fill"/>
+        <Rectangle Grid.Column="1" Fill="Black" HorizontalAlignment="Left" Height="76" Margin="262,167,0,0" Stroke="#FF0000FE" VerticalAlignment="Top" Width="5"/>
+        <Rectangle Grid.Column="1" Fill="Black" Height="76" Margin="316,167,0,0" Stroke="Blue" VerticalAlignment="Top" HorizontalAlignment="Left" Width="5"/>
+        <Rectangle Grid.Column="1" Fill="Black" Height="60" Margin="289,217,0,0" Stroke="Blue" VerticalAlignment="Top" HorizontalAlignment="Left" Width="5" RenderTransformOrigin="0.5,0.5">
+            <Rectangle.RenderTransform>
+                <TransformGroup>
+                    <ScaleTransform/>
+                    <SkewTransform/>
+                    <RotateTransform Angle="90.052"/>
+                    <TranslateTransform/>
+                </TransformGroup>
+            </Rectangle.RenderTransform>
+        </Rectangle>
+        <Rectangle Grid.Column="1" Fill="Black" Height="60" Margin="289,134,0,0" Stroke="Blue" VerticalAlignment="Top" HorizontalAlignment="Left" Width="5" RenderTransformOrigin="0.5,0.5">
+            <Rectangle.RenderTransform>
+                <TransformGroup>
+                    <ScaleTransform/>
+                    <SkewTransform/>
+                    <RotateTransform Angle="90.052"/>
+                    <TranslateTransform/>
+                </TransformGroup>
+            </Rectangle.RenderTransform>
+        </Rectangle>
+        <Label x:Name="label2" Content="Launcher" Grid.Column="1" HorizontalAlignment="Left" Margin="303,13,0,0" VerticalAlignment="Top" RenderTransformOrigin="1.23,0.654"/>
+        <Rectangle x:Name="launchColorBox" Grid.Column="1" Fill="White" HorizontalAlignment="Left" Height="28" Margin="303,40,0,0" Stroke="White" VerticalAlignment="Top" Width="70"/>
+        <Label x:Name="launchWordLabel" Content="Disengaged" Grid.Column="1" HorizontalAlignment="Left" Margin="312,44,0,0" VerticalAlignment="Top" FontSize="8"/>
+
 
     </Grid>
 </Window>
