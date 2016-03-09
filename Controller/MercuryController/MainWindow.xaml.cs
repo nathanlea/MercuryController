@@ -31,7 +31,7 @@ namespace MercuryController
         private TcpClient tcpServer;
         private Thread thrMessaging;
         private byte Tries = 0;
-        private bool Connected = false, launch = false, armedLaunch = false;
+        private bool Connected = false, launch = false, armedLaunch = false, robotConnected = false;
         private int driveMode = 0x0, brakeMode = 0x0;
         private byte[] sendArray = new byte[11];
         public MainWindow()
@@ -61,7 +61,7 @@ namespace MercuryController
         {
             if (!Connected)
             {
-                string ServIP = "192.168.1.3";//change this to your server ip
+                string ServIP = "192.168.1.7";//change this to your server ip
                 InitializeConnection(ServIP);
             }
             else
@@ -92,7 +92,7 @@ namespace MercuryController
             string ConResponse = srReceiver.ReadLine();
             if (ConResponse[0] == '*')
             {
-                connectedIndicator.Fill = new SolidColorBrush(Color.FromArgb(255, 0, 255, 0));
+                robotConnected = true;
             }
             else
             {
@@ -232,7 +232,6 @@ namespace MercuryController
             int RS = (int)state.Gamepad.Buttons & 0x200;
             int start = (int)state.Gamepad.Buttons & 0x10;
             A &= 0x1000;
-            B &= 0x2000;
             if(A != 0)
             {
                 if(driveMode == 0)
@@ -247,22 +246,6 @@ namespace MercuryController
                 if (driveMode == 0x80)
                 {
                     driveMode = 0;
-                }
-            }
-            if (B != 0)
-            {
-                if (brakeMode == 0)
-                {
-                    brakeMode = 1;
-                }
-                else
-                {
-                    brakeMode = (brakeMode << 0x1);
-                }
-
-                if (brakeMode == 0x80)
-                {
-                    brakeMode = 0;
                 }
             }
            /* xAxis.Content = LeftAxis;
@@ -337,7 +320,7 @@ namespace MercuryController
 
             //AUX?
             byte[] aux = new byte[2];
-            aux[0] = (byte)brakeMode;
+            aux[0] = 0x00;
             aux[1] = (byte)driveMode;
     
             byte[] packet = new byte[10];
@@ -384,22 +367,6 @@ namespace MercuryController
                 {
                     speedLevelSlider.Value = 0;
                 }
-                var tempBrakeMode = brakeMode;
-
-                for (int i = 1; brakeMode != 0 && i <= 7; i++)
-                {
-                    if ((tempBrakeMode & 0x01) == 1)
-                    {
-                        brakeLevelSlider.Value = i;
-                        break;
-                    }
-                    tempBrakeMode = tempBrakeMode >> 1;
-                }
-                if (tempBrakeMode == 0)
-                {
-                    brakeLevelSlider.Value = 0;
-                }
-
                 //Launch Logic
                 if (armedLaunch && LS != 0 && RS != 0 && start != 0)
                 {
@@ -423,6 +390,10 @@ namespace MercuryController
                         launchColorBox.Fill = new SolidColorBrush(Color.FromArgb(0, 0, 0, 0));
                         launchWordLabel.Content = "disengaged";
                     }                    
+                }
+                if(robotConnected)
+                {
+                    connectedIndicator.Fill = new SolidColorBrush(Color.FromArgb(255, 0, 255, 0));
                 }
             }
 

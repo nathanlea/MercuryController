@@ -2,6 +2,30 @@
 
 DualVNH5019MotorShield md;
 
+#define encodPinA1      18                       // encoder A pin
+#define encodPinB1      16                       // encoder B pin
+#define encodPinA2      17                       // encoder A pin
+#define encodPinB2      15                       // encoder B pin
+
+#define CURRENT_LIMIT   1000                     // high current warning
+#define LOW_BAT         10000                   // low bat warning
+#define LOOPTIME        100                     // PID loop time
+
+unsigned long lastMilli = 0;                    // loop timing 
+unsigned long lastMilliPrint = 0;               // loop timing
+int speed_req_r = 0;                            // speed (Set Point)
+int speed_act_r = 0;                              // speed (actual value)
+int speed_req_l = 0;                            // speed (Set Point)
+int speed_act_l = 0;                              // speed (actual value)
+int PWM_val_r = 0;                                // (25% = 64; 50% = 127; 75% = 191; 100% = 255)
+int PWM_val_l = 0;
+int voltage = 0;                                // in mV
+int current = 0;                                // in mA
+volatile long countr = 0;                       // rev counter
+volatile long countl = 0;                       // rev counter
+float Kp =   .4;                                // PID proportional control Gain
+float Kd =    1;                                // PID Derivitave control gain
+
 String inputString = "";         // a string to hold incoming data
 boolean stringComplete = false;  // whether the string is complete
 char message[24] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
@@ -11,8 +35,21 @@ double scale = 0.0;
 
 void setup() {
   delay(1000);
+
+  analogReference(EXTERNAL);                            // Current external ref is 3.3V
+  pinMode(encodPinA1, INPUT); 
+  pinMode(encodPinB1, INPUT); 
+  digitalWrite(encodPinA1, HIGH);                      // turn on pullup resistor
+  digitalWrite(encodPinB1, HIGH);
+  pinMode(encodPinA2, INPUT); 
+  pinMode(encodPinB2, INPUT); 
+  digitalWrite(encodPinA2, HIGH);                      // turn on pullup resistor
+  digitalWrite(encodPinB2, HIGH);
+  attachInterrupt(digitalPinToInterrupt(18), rencoder, FALLING);
+  attachInterrupt(digitalPinToInterrupt(19), lencoder, FALLING); 
+  
   // initialize serial:
-  Serial.begin(9600);
+  Serial.begin(115200);
   // reserve 200 bytes for the inputString:
   md.init();
   md.setBrakes(0,0);
@@ -22,8 +59,18 @@ void setup() {
 void loop() {
   serialEvent(); //call the function
   // print the string when a newline arrives:
-  if (stringComplete) {
 
+  if((millis()-lastMilli) >= LOOPTIME)   {                                    // enter tmed loop
+    lastMilli = millis();
+    getMotorDataR();
+    getMotorDataL();
+    PWM_val_r = updatePid(PWM_val_r, speed_req_r, speed_act_r);
+    PWM_val_l = updatePid(PWM_val_l, speed_req_l, speed_act_l);
+    md.setSpeeds(PWM_val_r, PWM_val_l);
+  }
+  
+  if (stringComplete) {
+    
     //char[] messgae = new char[inputString.length];
     inputString.toCharArray(message, 24);
     //byte[] messB = new byte[message.Length >> 1];
@@ -42,9 +89,9 @@ void loop() {
       //Checksum
       if(sum==(packet[8]&0xFF)) {
         
-        if(packet([1]&0x01) {
+        //if(packet[1]&0x01) {
           //launch
-        }        
+        //}        
         int steering = packet[2] & 0xFF;
         int throttle = packet[1] & 0xFF;
         steering-=127;
@@ -82,37 +129,9 @@ void loop() {
             steering = 0;
             throttle = 0;
             break;          
-        }        
-        md.setM1Speed((throttle*.75));
-        md.setM2Speed(steering);
-
-        switch (packet[6]) {
-          case 0x1:
-            md.setBrakes(0,0);
-            break;
-          case 0x2:
-            md.setBrakes(50,50);
-            break;
-          case 0x4:
-            md.setBrakes(100,1000);
-            break;
-          case 0x8:
-            md.setBrakes(200,200);
-            break;
-          case 0x10:
-            md.setBrakes(250,250);
-            break;
-          case 0x20:
-            md.setBrakes(300,300);
-            break;
-          case 0x40:
-            md.setBrakes(400,0);
-            break;
-          default:
-            md.setBrakes(0,0);
-            break;          
         }
-        
+        speed_req_r = throttle;
+        speed_req_l = steering;        
       }
     }
     // clear the string:
@@ -121,12 +140,43 @@ void loop() {
   }
 }
 
+void getMotorDataR()  {                                                        // calculate speed, volts and Amps
+  static long countAntR = 0;                                                   // last count
+  speed_act_r = ((countr - countAntR)*(60*(1000/LOOPTIME)))/(16*29);          // 16 pulses X 29 gear ratio = 464 counts per output shaft rev
+  countAntR = countr;
+}
+
+void getMotorDataL()  {                                                        // calculate speed, volts and Amps
+  static long countAntL = 0;                                                   // last count
+  speed_act_l = ((countl - countAntL)*(60*(1000/LOOPTIME)))/(16*29);          // 16 pulses X 29 gear ratio = 464 counts per output shaft rev
+  countAntL = countl;
+}
+
+int updatePid(int command, int targetValue, int currentValue)   {             // compute PWM value
+  float pidTerm = 0;                                                            // PID correction
+  int error=0;                                  
+  static int last_error=0;                             
+  error = abs(targetValue) - abs(currentValue); 
+  pidTerm = (Kp * error) + (Kd * (error - last_error));                            
+  last_error = error;
+  return constrain(command + int(pidTerm), 0, 255);
+}
+
+void rencoder()  {                                    // pulse and direction, direct port reading to save cycles
+ if (PIND & 0b00000100)    countr++;                // if(digitalRead(encodPinB1)==HIGH)   count ++;
+ else                      countr--;                // if (digitalRead(encodPinB1)==LOW)   count --;
+}
+
+void lencoder()  {                                    // pulse and direction, direct port reading to save cycles
+ if (PIND & 0b00001000)    countl--;                // if(digitalRead(encodPinB1)==HIGH)   count ++;
+ else                      countl++;                // if (digitalRead(encodPinB1)==LOW)   count --;
+}
+
 int GetHexValue(char hex)
 {
     int val = (int)hex;
     return val - (val < 58 ? 48 : 55);
 }
-
 /*
   SerialEvent occurs whenever a new data comes in the
  hardware serial RX.  This routine is run between each

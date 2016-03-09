@@ -34,7 +34,7 @@
         <Slider x:Name="LMotorSpeed" Grid.Column="2" HorizontalAlignment="Left" Margin="5,182,0,0" VerticalAlignment="Top" Height="115" Width="20" Orientation="Vertical" Maximum="127" Minimum="-127"/>
         <Slider x:Name="RMotorSpeed" Grid.Column="2" HorizontalAlignment="Left" Margin="30,182,0,0" VerticalAlignment="Top" Height="115" Width="20" Orientation="Vertical" Maximum="127" Minimum="-127"/>
         <Slider x:Name="brakeLevelSlider" Grid.Column="2" HorizontalAlignment="Left" Margin="170,182,0,0" VerticalAlignment="Top" Height="127" Maximum="7" Orientation="Vertical" SmallChange="0" TickPlacement="TopLeft" Cursor="None" IsEnabled="False" Width="26"/>
-        <Label x:Name="slider_title_brake" Content="Brake Level" Grid.Column="2" HorizontalAlignment="Left" Margin="133,160,0,0" VerticalAlignment="Top" Width="61" FontSize="9.333" Height="22"/>
+        <Label x:Name="slider_title_brake" Content="Unused" Grid.Column="2" HorizontalAlignment="Left" Margin="133,160,0,0" VerticalAlignment="Top" Width="61" FontSize="9.333" Height="22"/>
         <Label x:Name="slider_label7_brake" Content="7" Grid.Column="2" HorizontalAlignment="Left" Margin="161,181,0,0" VerticalAlignment="Top" FontSize="8" Height="14" Padding="0" Width="4"/>
         <Label x:Name="slider_label6_brake" Content="6" Grid.Column="2" HorizontalAlignment="Left" Margin="161,197,0,0" VerticalAlignment="Top" FontSize="8" Height="14" Padding="0" Width="4"/>
         <Label x:Name="slider_label5_brake" Content="5" Grid.Column="2" Margin="161,213,0,0" VerticalAlignment="Top" FontSize="8" Height="14" Padding="0" HorizontalAlignment="Left" Width="4"/>
