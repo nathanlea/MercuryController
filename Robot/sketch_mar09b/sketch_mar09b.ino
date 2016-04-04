@@ -21,9 +21,9 @@ DualVNH5019MotorShield md;
 
 unsigned long lastMilli = 0;                    // loop timing 
 unsigned long lastMilliPrint = 0;               // loop timing
-double speed_req_r = 80;                            // speed (Set Point)
+double speed_req_r = 150;                            // speed (Set Point)
 double speed_act_r = 0;                              // speed (actual value)
-double speed_req_l = 80;                            // speed (Set Point)
+double speed_req_l = 150;                           // speed (Set Point)
 double speed_act_l = 0;                              // speed (actual value)
 double PWM_val_r = 0;                                // (25% = 64; 50% = 127; 75% = 191; 100% = 255)
 double PWM_val_l = 0;
@@ -32,7 +32,7 @@ volatile long countl = 0;                       // rev counter
 
 //Define the aggressive and conservative Tuning Parameters
 double aggKp=4, aggKi=0.2, aggKd=1;
-double consKp=2, consKi=0.02, consKd=0.005;
+double consKp=2.7, consKi=0.25, consKd=0.005;
 
 //Specify the links and initial tuning parameters
 PID RPID(&speed_act_r, &PWM_val_r, &speed_req_r, consKp, consKi, consKd, DIRECT);
