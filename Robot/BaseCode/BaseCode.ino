@@ -1,4 +1,5 @@
 #include "DualVNH5019MotorShield.h"
+#include <PID_v1.h>
 
 DualVNH5019MotorShield md;
 
@@ -13,18 +14,24 @@ DualVNH5019MotorShield md;
 
 unsigned long lastMilli = 0;                    // loop timing 
 unsigned long lastMilliPrint = 0;               // loop timing
-int speed_req_r = 0;                            // speed (Set Point)
-int speed_act_r = 0;                              // speed (actual value)
-int speed_req_l = 0;                            // speed (Set Point)
-int speed_act_l = 0;                              // speed (actual value)
-int PWM_val_r = 0;                                // (25% = 64; 50% = 127; 75% = 191; 100% = 255)
-int PWM_val_l = 0;
+double speed_req_r = 0;                            // speed (Set Point)
+double speed_act_r = 0;                              // speed (actual value)
+double speed_req_l = 0;                            // speed (Set Point)
+double speed_act_l = 0;                              // speed (actual value)
+double PWM_val_r = 0;                                // (25% = 64; 50% = 127; 75% = 191; 100% = 255)
+double PWM_val_l = 0;
 int voltage = 0;                                // in mV
 int current = 0;                                // in mA
 volatile long countr = 0;                       // rev counter
 volatile long countl = 0;                       // rev counter
-float Kp =   .4;                                // PID proportional control Gain
-float Kd =    1;                                // PID Derivitave control gain
+
+//Define the aggressive and conservative Tuning Parameters
+double aggKp=4, aggKi=0.2, aggKd=1;
+double consKp=2.7, consKi=0.25, consKd=0.005;
+
+//Specify the links and initial tuning parameters
+PID RPID(&speed_act_r, &PWM_val_r, &speed_req_r, consKp, consKi, consKd, DIRECT);
+PID LPID(&speed_act_l, &PWM_val_l, &speed_req_l, consKp, consKi, consKd, DIRECT);
 
 String inputString = "";         // a string to hold incoming data
 boolean stringComplete = false;  // whether the string is complete
@@ -46,7 +53,7 @@ void setup() {
   digitalWrite(encodPinA2, HIGH);                      // turn on pullup resistor
   digitalWrite(encodPinB2, HIGH);
   attachInterrupt(digitalPinToInterrupt(18), rencoder, FALLING);
-  attachInterrupt(digitalPinToInterrupt(19), lencoder, FALLING); 
+  attachInterrupt(digitalPinToInterrupt(3), lencoder, RISING);
   
   // initialize serial:
   Serial.begin(115200);
@@ -54,6 +61,10 @@ void setup() {
   md.init();
   md.setBrakes(0,0);
   inputString.reserve(200);
+
+  //turn the PID on
+  RPID.SetMode(AUTOMATIC);
+  LPID.SetMode(AUTOMATIC);
 }
 
 void loop() {
@@ -61,16 +72,27 @@ void loop() {
   // print the string when a newline arrives:
 
   if((millis()-lastMilli) >= LOOPTIME)   {                                    // enter tmed loop
-    lastMilli = millis();
-    getMotorDataR();
-    getMotorDataL();
-    PWM_val_r = updatePid(PWM_val_r, speed_req_r, speed_act_r);
-    PWM_val_l = updatePid(PWM_val_l, speed_req_l, speed_act_l);
-    md.setSpeeds(PWM_val_r, PWM_val_l);
-  }
+   lastMilli = millis();
+   getMotorDataR();
+   getMotorDataL();   
+   
+   if(speed_req_r < 0 || speed_req_l < 0) {
+      md.setSpeeds((speed_req_r*0.75), speed_req_l);
+   }
+   else {
+      RPID.Compute();
+      LPID.Compute();
+      if( speed_req_r == 0) {
+          PWM_val_r = 0;    
+      } 
+      if( speed_req_l == 0) {
+          PWM_val_l = 0;    
+      }
+        md.setSpeeds(PWM_val_r, PWM_val_l);
+   }
+ }
   
-  if (stringComplete) {
-    
+  if (stringComplete) {    
     //char[] messgae = new char[inputString.length];
     inputString.toCharArray(message, 24);
     //byte[] messB = new byte[message.Length >> 1];
@@ -142,34 +164,24 @@ void loop() {
 
 void getMotorDataR()  {                                                        // calculate speed, volts and Amps
   static long countAntR = 0;                                                   // last count
-  speed_act_r = ((countr - countAntR)*(60*(1000/LOOPTIME)))/(16*29);          // 16 pulses X 29 gear ratio = 464 counts per output shaft rev
+  speed_act_r = ((countr - countAntR)*(60*(1000/LOOPTIME)))/(16*30);          // 16 pulses X 29 gear ratio = 464 counts per output shaft rev
   countAntR = countr;
 }
 
 void getMotorDataL()  {                                                        // calculate speed, volts and Amps
   static long countAntL = 0;                                                   // last count
-  speed_act_l = ((countl - countAntL)*(60*(1000/LOOPTIME)))/(16*29);          // 16 pulses X 29 gear ratio = 464 counts per output shaft rev
+  speed_act_l = ((countl - countAntL)*(60*(1000/LOOPTIME)))/(16*30);          // 16 pulses X 29 gear ratio = 464 counts per output shaft rev
   countAntL = countl;
 }
 
-int updatePid(int command, int targetValue, int currentValue)   {             // compute PWM value
-  float pidTerm = 0;                                                            // PID correction
-  int error=0;                                  
-  static int last_error=0;                             
-  error = abs(targetValue) - abs(currentValue); 
-  pidTerm = (Kp * error) + (Kd * (error - last_error));                            
-  last_error = error;
-  return constrain(command + int(pidTerm), 0, 255);
-}
-
 void rencoder()  {                                    // pulse and direction, direct port reading to save cycles
- if (PIND & 0b00000100)    countr++;                // if(digitalRead(encodPinB1)==HIGH)   count ++;
- else                      countr--;                // if (digitalRead(encodPinB1)==LOW)   count --;
+ if (PIND & 0b00000100)            countr--;                // if(digitalRead(encodPinB1)==HIGH)   count ++;
+ else if(!(PIND & 0b00000100))     countr++;                // if (digitalRead(encodPinB1)==LOW)   count --;
 }
 
 void lencoder()  {                                    // pulse and direction, direct port reading to save cycles
- if (PIND & 0b00001000)    countl--;                // if(digitalRead(encodPinB1)==HIGH)   count ++;
- else                      countl++;                // if (digitalRead(encodPinB1)==LOW)   count --;
+ if (PINE & 0b00100000)           countl++;                // if(digitalRead(encodPinB1)==HIGH)   count ++;
+ else if(!(PINE & 0b00100000))    countl--;                // if (digitalRead(encodPinB1)==LOW)   count --;
 }
 
 int GetHexValue(char hex)

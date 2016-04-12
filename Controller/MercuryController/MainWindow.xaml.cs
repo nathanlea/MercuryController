@@ -61,7 +61,7 @@ namespace MercuryController
         {
             if (!Connected)
             {
-                string ServIP = "192.168.1.7";//change this to your server ip
+                string ServIP = "192.168.1.6";//change this to your server ip
                 InitializeConnection(ServIP);
             }
             else
